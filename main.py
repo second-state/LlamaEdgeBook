@@ -227,7 +227,15 @@ def generate_book_structure(prompt: str):
             },
             {
                 "role": "user",
-                "content": f"Write a comprehensive structure, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
+                "content": f"Write a comprehensive structure in JSON format, omiting introduction and conclusion sections (forward, author's note, summary), for a short (3 page) book on the following subject:\n\n<subject>Data Structures and Algorithms in Java</subject>"
+            },
+            {
+                "role": "assistant",
+                "content": '{ "Data Structures and Algorithms in Java" : {"What is Data Structure?" : "Description of Data Structures and Their Importance", "Why Java for Data Structures?" : "Reasons for choosing Java for data structures and algorithms" , "Overview of the Book" : { "Java Basics":"Review of Java Syntax and Basics" } } }'
+            },
+            {
+                "role": "user",
+                "content": f"Write a comprehensive structure in JSON format, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
             }
         ],
         temperature=0.3,
