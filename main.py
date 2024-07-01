@@ -1,19 +1,21 @@
 import streamlit as st
-from groq import Groq
+# from groq import Groq
+from openai import Client
 import json
 import os
 from io import BytesIO
 from markdown import markdown
 from weasyprint import HTML, CSS
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", None)
+API_KEY = os.environ.get("OPENAI_API_KEY", None)
+MODEL_NAME = os.environ.get("OPENAI_MODEL_NAME", "gpt-4-turbo")
 
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = GROQ_API_KEY
+    st.session_state.api_key = API_KEY
 
-if 'groq' not in st.session_state:
-    if GROQ_API_KEY:
-        st.session_state.groq = Groq()
+if 'client' not in st.session_state:
+    if API_KEY:
+        st.session_state.client = Client(api_key=API_KEY)
 
 class GenerationStatistics:
     def __init__(self, input_time=0,output_time=0,input_tokens=0,output_tokens=0,total_time=0,model_name="llama3-8b-8192"):
@@ -216,8 +218,8 @@ def generate_book_structure(prompt: str):
     """
     Returns book structure content as well as total tokens and total time for generation.
     """
-    completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+    completion = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
@@ -237,13 +239,13 @@ def generate_book_structure(prompt: str):
     )
 
     usage = completion.usage
-    statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name="llama3-70b-8192")
+    statistics_to_return = GenerationStatistics(input_time=getattr(usage,"prompt_time",0), output_time=getattr(usage,"completion_time",0), input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=getattr(usage,"total_time",0),model_name=MODEL_NAME)
 
     return statistics_to_return, completion.choices[0].message.content
 
 def generate_section(prompt: str):
-    stream = st.session_state.groq.chat.completions.create(
-        model="llama3-8b-8192",
+    stream = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
@@ -265,11 +267,11 @@ def generate_section(prompt: str):
         tokens = chunk.choices[0].delta.content
         if tokens:
             yield tokens
-        if x_groq := chunk.x_groq:
+        if x_groq := getattr(chunk,"x_groq",None):
             if not x_groq.usage:
                 continue
             usage = x_groq.usage
-            statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name="llama3-8b-8192")
+            statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name=MODEL_NAME)
             yield statistics_to_return
 
 # Initialize
@@ -284,7 +286,7 @@ if 'statistics_text' not in st.session_state:
 
 
 st.write("""
-# Groqbook: Write full books using llama3 (8b and 70b) on Groq
+# Groqbook: Write full books using llama3 (8b and 70b)
 """)
 
 def disable():
@@ -322,8 +324,8 @@ try:
 
 
     with st.form("groqform"):
-        if not GROQ_API_KEY:
-            groq_input_key = st.text_input("Enter your Groq API Key (gsk_yA...):", "",type="password")
+        if not API_KEY:
+            groq_input_key = st.text_input("Enter your API Key (gsk_yA...):", "",type="password")
 
         topic_text = st.text_input("What do you want the book to be about?", "")
 
@@ -351,15 +353,15 @@ try:
             st.session_state.statistics_text = "Generating structure in background...." # Show temporary message before structure is generated and statistics show
             display_statistics()
 
-            if not GROQ_API_KEY:
-                st.session_state.groq = Groq(api_key=groq_input_key)
+            if not API_KEY:
+                st.session_state.client = Client(api_key=API_KEY)
 
             large_model_generation_statistics, book_structure = generate_book_structure(topic_text)
 
             # st.session_state.statistics_text = str(large_model_generation_statistics)
             # display_statistics()
 
-            total_generation_statistics = GenerationStatistics(model_name="llama3-8b-8192")
+            total_generation_statistics = GenerationStatistics(model_name=MODEL_NAME)
 
             try:
                 book_structure_json = json.loads(book_structure)
