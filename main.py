@@ -223,7 +223,7 @@ def generate_book_structure(prompt: str):
         messages=[
             {
                 "role": "system",
-                "content": "Write in JSON format:\n\n{\"Title of section goes here\":\"Description of section goes here\",\n\"Title of section goes here\":{\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\"}}"
+                "content": "Write in JSON format: {\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":{\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\"}}"
             },
             {
                 "role": "user",
@@ -235,7 +235,7 @@ def generate_book_structure(prompt: str):
             },
             {
                 "role": "user",
-                "content": f"Write a comprehensive structure in JSON format, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
+                "content": f"Write a comprehensive structure in JSON format, Do not use ``` to wrap, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
             }
         ],
         temperature=0.3,
@@ -405,6 +405,7 @@ try:
             
             except json.JSONDecodeError:
                 st.error("Failed to decode the book structure. Please try again.")
+                print(book_structure)
 
             enable()
 
