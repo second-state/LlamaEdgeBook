@@ -22,7 +22,7 @@ if 'client' not in st.session_state:
         st.session_state.client = Client(api_key=API_KEY)
 
 class GenerationStatistics:
-    def __init__(self, input_time=0,output_time=0,input_tokens=0,output_tokens=0,total_time=0,model_name="llama3-8b-8192"):
+    def __init__(self, input_time=0,output_time=0,input_tokens=0,output_tokens=0,total_time=0,model_name=MODEL_NAME):
         self.input_time = input_time
         self.output_time = output_time
         self.input_tokens = input_tokens
@@ -228,8 +228,8 @@ def generate_book_title(prompt: str):
     """
     Generate a book title using AI.
     """
-    completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+    completion = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
