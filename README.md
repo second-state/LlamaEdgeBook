@@ -1,90 +1,76 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-# Groqbook: Generate entire books in seconds using Groq and Llama3
+# LlamaEdgeBook: Generate entire books in seconds using OpenAI-like API server
+
+**This project is from [Groqbook by Bkieger](https://github.com/Bklieger/groqbook)**
  
-Groqbook is a streamlit app that scaffolds the creation of books from a one-line prompt using Llama3 on Groq. It works well on nonfiction books and generates each chapter within seconds. The app mixes Llama3-8b and Llama3-70b, utilizing the larger model for generating the structure and the smaller of the two for creating the content. Currently, the model only uses the context of the section title to generate the chapter content. In the future, this will be expanded to the fuller context of the book to allow groqbook to generate quality fiction books as well.
+Groqbook is a streamlit app that scaffolds the creation of books from a one-line prompt using Llama3 on Groq. It works well on nonfiction books and generates each chapter within seconds. 
 
-[Demo of Groqbook](https://github.com/Bklieger/groqbook/assets/62450410/3adb11cd-8264-4289-a28a-49dc5b3cf453)
-> Demo of Groqbook fast generation of book content
+**We have made Groq book can work with any OpenAI-like API server, like LlamaEdge and GaiaNet node. We also improved the prompts to make it can generate book well.**
 
----
+[Demo of LlamaEdgeBook](https://github.com/Bklieger/groqbook/assets/62450410/3adb11cd-8264-4289-a28a-49dc5b3cf453)
+> Demo of LlamaEdgeBook using a GaiaNet node running Gemma-2-9b on NVIDA T4 
 
-[Second Part of Demo of Groqbook](https://github.com/Bklieger/groqbook/assets/62450410/5b0147fb-90f3-4584-8572-fa452545d833)
-> Demo of Groqbook downloading markdown-styled book
 
----
+### How to run it
+
+Before you run it, you will need to have access to an OpenAI-like API server.
+
+* [Quick start with LlamaEdge](https://llamaedge.com/docs/user-guide/quick-start-command). Your LLM API base URL will be `http:localhost:8080` using LlamaEdge.
+* [Qucik start with GaiaNet](https://docs.gaianet.ai/node-guide/quick-start). The base URL for your LLM API will be a publicly accessible one, employing GaiaNet.
+
+**Step 1: set up the environment**
+
+Use the following command line to get source code and install the necessary dependencies.
+
+```
+git clone https://github.com/second-state/LlamaEdgeBook.git
+cd LlamaEdgeBook
+
+pip install -r requirements.txt
+```
+**Step 2: Set up the LLM**
+
+Use the following command line to set uo the LLM for generating book.
+```
+export OPENAI_BASE_URL="https://0x57b00e4f3d040e28dc8aabdbe201212e5fb60ebc.us.gaianet.network/v1"
+export OPENAI_MODEL_NAME="gemma-2-9b-it-Q5_K_M"
+export OPENAI_API_KEY="NA"
+```
+**Step 3: Run the application**
+
+```
+streamlit run main.py
+```
+If it runs successfully, you will can see the following output.
+
+```
+
+Collecting usage statistics. To deactivate, set browser.gatherUsageStats to false.
+
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://10.128.0.8:8501
+  External URL: http://35.222.115.181:8501
+```
+
+Then, you can open `http://localhost:8501` in your browser to generate a book by entering your prompt.
 
 ### Features
 
-- 📖 Scaffolded prompting that strategically switches between Llama3-70b and Llama3-8b to balance speed and quality
+- 📖 Support all the open source LLMs
 - 🖊️ Uses markdown styling to create an aesthetic book on the streamlit app that includes tables and code 
-- 📂 Allows user to download a text file with the entire book contents
+- 📂 Allows user to download a text or PDF file with the entire book contents
 
 ### Example Generated Books:
 
 | Example                                      | Prompt                                                                                                                                |
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| [LLM Basics](Example_1.md)             |  The Basics of Large Language Models                                       |
-| [Data Structures and Algorithms](Example_2.md) | Data Structures and Algorithms in Java                                            |
+| [cookbook]()             |  How to make a chicago style sandwich                                    |
 
 ---
-
-## Quickstart
-
-> [!IMPORTANT]
-> To use Groqbook, you can use the hosted version at [groqbook.streamlit.app](https://groqbook.streamlit.app)
-> Alternatively, you can run groqbook locally with streamlit using the quickstart instructions.
-
-
-### Hosted on Streamlit:
-
-To use Groqbook, you can use the hosted version at [groqbook.streamlit.app](https://groqbook.streamlit.app)
-
-
-### Run locally:
-
-Alternative, you can run groqbook locally with streamlit.
-
-#### Step 1
-First, you can set your Groq API key in the environment variables:
-
-~~~
-export $GROQ_API_KEY = gsk_yA...
-~~~
-
-This is an optional step that allows you to skip setting the Groq API key later in the streamlit app.
-
-#### Step 2
-Next, you can set up a virtual environment and install the dependencies.
-
-~~~
-python3 -m venv venv
-~~~
-
-~~~
-source venv/bin/activate # Bash
-
-venv\Scripts\activate.bat # Windows
-~~~
-
-~~~
-pip3 install -r requirements.txt
-~~~
-
-
-#### Step 3 (Windows Only)
-It may be required to install gtk3 for users on windows.
-
-~~~
-https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer?tab=readme-ov-file
-~~~
-
-#### Step 4
-Finally, you can run the streamlit app.
-
-~~~
-python3 -m streamlit run main.py
-~~~
 
 
 
@@ -94,34 +80,13 @@ python3 -m streamlit run main.py
 ### Technologies
 
 - Streamlit
-- Llama3 on Groq Cloud
-
-### Limitations
-
-Groqbook may generate inaccurate information or placeholder content. It should be used to generate books for entertainment purposes only.
-
+- OpenAI 
+- LlamaEdge
 
 ## Contributing
 
 Improvements through PRs are welcome!
 
+## Cedits
 
-## Changelog
-
-### v0.2.0
-May 29th, 2024:
-
-[Demo of Groqbook Statistics](https://github.com/Bklieger/groqbook/assets/62450410/b7af2fd5-f587-44ae-bc6d-40c1233c8b7e)
-> Demo of Groqbook's Generation Statistics
-
-### v0.3.0
-June 8th, 2024:
-
-![Image of New PDF Download Option](assets/imgs/release_note_jun_8th.png)
-> Download Books as Styled PDFs
-
-
-### Future Features:
-- Ability to title books which shows on downloads
-- Ability to save books to Google drive
-- Optional seed content field to input existing notes
+Thanks Bkieger for crearting [groqbook](https://github.com/Bklieger/groqbook). 
