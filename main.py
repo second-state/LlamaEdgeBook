@@ -1,5 +1,6 @@
 import streamlit as st
-from groq import Groq
+# from groq import Groq
+from openai import Client
 import json
 import os
 from io import BytesIO
@@ -10,17 +11,18 @@ from dotenv import load_dotenv
 # load .env file to environment
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", None)
+API_KEY = os.getenv("OPENAI_API_KEY", None)
+MODEL_NAME = os.getenv("OPENAI_MODEL_NAME", "gpt-4-turbo")
 
 if 'api_key' not in st.session_state:
-    st.session_state.api_key = GROQ_API_KEY
+    st.session_state.api_key = API_KEY
 
-if 'groq' not in st.session_state:
-    if GROQ_API_KEY:
-        st.session_state.groq = Groq()
+if 'client' not in st.session_state:
+    if API_KEY:
+        st.session_state.client = Client(api_key=API_KEY)
 
 class GenerationStatistics:
-    def __init__(self, input_time=0,output_time=0,input_tokens=0,output_tokens=0,total_time=0,model_name="llama3-8b-8192"):
+    def __init__(self, input_time=0,output_time=0,input_tokens=0,output_tokens=0,total_time=0,model_name=MODEL_NAME):
         self.input_time = input_time
         self.output_time = output_time
         self.input_tokens = input_tokens
@@ -226,8 +228,8 @@ def generate_book_title(prompt: str):
     """
     Generate a book title using AI.
     """
-    completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+    completion = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
@@ -251,16 +253,24 @@ def generate_book_structure(prompt: str):
     """
     Returns book structure content as well as total tokens and total time for generation.
     """
-    completion = st.session_state.groq.chat.completions.create(
-        model="llama3-70b-8192",
+    completion = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
-                "content": "Write in JSON format:\n\n{\"Title of section goes here\":\"Description of section goes here\",\n\"Title of section goes here\":{\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\"}}"
+                "content": "Write in JSON format: {\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":{\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\",\"Title of section goes here\":\"Description of section goes here\"}}"
             },
             {
                 "role": "user",
-                "content": f"Write a comprehensive structure, omitting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
+                "content": f"Write a comprehensive structure in JSON format, omiting introduction and conclusion sections (forward, author's note, summary), for a short (3 page) book on the following subject:\n\n<subject>Data Structures and Algorithms in Java</subject>"
+            },
+            {
+                "role": "assistant",
+                "content": '{ "Data Structures and Algorithms in Java" : {"What is Data Structure?" : "Description of Data Structures and Their Importance", "Why Java for Data Structures?" : "Reasons for choosing Java for data structures and algorithms" , "Overview of the Book" : { "Java Basics":"Review of Java Syntax and Basics" } } }'
+            },
+            {
+                "role": "user",
+                "content": f"Write a comprehensive structure in JSON format, Do not use ``` to wrap, omiting introduction and conclusion sections (forward, author's note, summary), for a long (>300 page) book on the following subject:\n\n<subject>{prompt}</subject>"
             }
         ],
         temperature=0.3,
@@ -272,13 +282,13 @@ def generate_book_structure(prompt: str):
     )
 
     usage = completion.usage
-    statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name="llama3-70b-8192")
+    statistics_to_return = GenerationStatistics(input_time=getattr(usage,"prompt_time",0), output_time=getattr(usage,"completion_time",0), input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=getattr(usage,"total_time",0),model_name=MODEL_NAME)
 
     return statistics_to_return, completion.choices[0].message.content
 
 def generate_section(prompt: str):
-    stream = st.session_state.groq.chat.completions.create(
-        model="llama3-8b-8192",
+    stream = st.session_state.client.chat.completions.create(
+        model=MODEL_NAME,
         messages=[
             {
                 "role": "system",
@@ -300,11 +310,11 @@ def generate_section(prompt: str):
         tokens = chunk.choices[0].delta.content
         if tokens:
             yield tokens
-        if x_groq := chunk.x_groq:
+        if x_groq := getattr(chunk,"x_groq",None):
             if not x_groq.usage:
                 continue
             usage = x_groq.usage
-            statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name="llama3-8b-8192")
+            statistics_to_return = GenerationStatistics(input_time=usage.prompt_time, output_time=usage.completion_time, input_tokens=usage.prompt_tokens, output_tokens=usage.completion_tokens, total_time=usage.total_time,model_name=MODEL_NAME)
             yield statistics_to_return
 
 # Initialize
@@ -321,7 +331,7 @@ if 'book_title' not in st.session_state:
     st.session_state.book_title = ""
 
 st.write("""
-# Groqbook: Write full books using llama3 (8b and 70b) on Groq
+# Groqbook: Write full books using llama3 (8b and 70b)
 """)
 
 def disable():
@@ -357,8 +367,8 @@ try:
             raise ValueError("Please generate content first before downloading the book.")
 
     with st.form("groqform"):
-        if not GROQ_API_KEY:
-            groq_input_key = st.text_input("Enter your Groq API Key (gsk_yA...):", "",type="password")
+        if not API_KEY:
+            groq_input_key = st.text_input("Enter your API Key (gsk_yA...):", "",type="password")
 
         topic_text = st.text_input("What do you want the book to be about?", "")
 
@@ -385,8 +395,8 @@ try:
             st.session_state.statistics_text = "Generating book title and structure in background...."
             display_statistics()
 
-            if not GROQ_API_KEY:
-                st.session_state.groq = Groq(api_key=groq_input_key)
+            if not API_KEY:
+                st.session_state.client = Client(api_key=API_KEY)
 
             # Generate AI book title
             st.session_state.book_title = generate_book_title(topic_text)
@@ -394,7 +404,8 @@ try:
 
             large_model_generation_statistics, book_structure = generate_book_structure(topic_text)
 
-            total_generation_statistics = GenerationStatistics(model_name="llama3-8b-8192")
+
+            total_generation_statistics = GenerationStatistics(model_name=MODEL_NAME)
 
             try:
                 book_structure_json = json.loads(book_structure)
@@ -430,6 +441,7 @@ try:
             
             except json.JSONDecodeError:
                 st.error("Failed to decode the book structure. Please try again.")
+                print(book_structure)
 
             enable()
 
