@@ -441,6 +441,7 @@ try:
             
             except json.JSONDecodeError:
                 st.error("Failed to decode the book structure. Please try again.")
+                print(book_structure)
 
             enable()
 
