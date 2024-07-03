@@ -331,7 +331,7 @@ if 'book_title' not in st.session_state:
     st.session_state.book_title = ""
 
 st.write("""
-# Groqbook: Write full books using llama3 (8b and 70b)
+# LlamaEdgeBook: Write full books using Open source LLMs
 """)
 
 def disable():
