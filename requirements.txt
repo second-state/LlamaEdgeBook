@@ -1,5 +1,6 @@
 Markdown==3.5.2
-openai==1.35.9
+openai==1.37.1
 python-dotenv==1.0.1
-streamlit==1.36.0
+streamlit==1.37.0
 weasyprint==62.3
+jsonfixer==0.2.2

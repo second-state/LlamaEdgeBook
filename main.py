@@ -7,12 +7,15 @@ from io import BytesIO
 from markdown import markdown
 from weasyprint import HTML, CSS
 from dotenv import load_dotenv
+from half_json.core import JSONFixer
 
 # load .env file to environment
 load_dotenv()
 
 API_KEY = os.getenv("OPENAI_API_KEY", None)
 MODEL_NAME = os.getenv("OPENAI_MODEL_NAME", "gpt-4-turbo")
+
+json_fixer = JSONFixer()
 
 if 'api_key' not in st.session_state:
     st.session_state.api_key = API_KEY
@@ -408,6 +411,7 @@ try:
             total_generation_statistics = GenerationStatistics(model_name=MODEL_NAME)
 
             try:
+                book_structure = json_fixer.fix(book_structure).line
                 book_structure_json = json.loads(book_structure)
                 book = Book(st.session_state.book_title, book_structure_json)
                 
